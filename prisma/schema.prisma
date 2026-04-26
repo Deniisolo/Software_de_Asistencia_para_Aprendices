@@ -7,12 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model TestInput {
-  id        Int      @id @default(autoincrement())
-  dato      String
-  createdAt DateTime @default(now())
-}
-
 model Rol {
   idRol     Int       @id @map(" id_Rol")
   nombreRol String    @map("nombre_rol") @db.VarChar(45)
