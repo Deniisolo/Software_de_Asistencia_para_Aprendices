@@ -12,3 +12,193 @@ model TestInput {
   dato      String
   createdAt DateTime @default(now())
 }
+
+model Rol {
+  idRol     Int       @id @map(" id_Rol")
+  nombreRol String    @map("nombre_rol") @db.VarChar(45)
+  usuarios  Usuario[]
+
+  @@map("Rol")
+}
+
+model TipoDocumento {
+  idTipoDocumento  Int       @id @map("id_Tipo_Documento")
+  nombreDocumento  String?   @map("nombre_documento") @db.VarChar(45)
+  tipoDocumentoCol String?   @map("TipoDocumentocol") @db.VarChar(45)
+  usuarios         Usuario[]
+
+  @@map("TipoDocumento")
+}
+
+model Usuario {
+  idUsuario                    Int    @map("id_usuario")
+  nombre                       String @map("nombre") @db.VarChar(45)
+  apellido                     String @map("apellido") @db.VarChar(45)
+  correoElectronico            String @map("correo_electronico") @db.VarChar(45)
+  telefono                     String @map("telefono") @db.VarChar(45)
+  numeroDocumento              String @map("numero_documento") @db.VarChar(45)
+  idTipoDocumento              String @map("id_tipo_documento") @db.VarChar(45)
+  idGenero                     String @map("id_genero") @db.VarChar(45)
+  idEstadoEstudiante           String @map("id_estado_estudiante") @db.VarChar(45)
+  idFicha                      String @map("id_ficha") @db.VarChar(45)
+  usemame                      String @map("usemame") @db.VarChar(45)
+  contrasenia                  String @map("Contrasenia") @db.VarChar(45)
+  rolIdRol                     Int    @map("Rol_ id_Rol")
+  tipoDocumentoIdTipoDocumento Int    @map("TipoDocumento_id_Tipo_Documento")
+
+  rol              Rol           @relation(fields: [rolIdRol], references: [idRol])
+  tipoDocumentoRef TipoDocumento @relation(fields: [tipoDocumentoIdTipoDocumento], references: [idTipoDocumento])
+
+  programasFormacion ProgramaFormacion[]
+  generos            Genero[]
+  estadosEstudiante  EstadoEstudiante[]
+  fichas             Ficha[]
+  nivelesFormacion   NivelDeFormacion[]
+
+  @@id([idUsuario, rolIdRol])
+  @@map("Usuario")
+}
+
+model CursoCompetencia {
+  idCurso        Int     @id @map("id_curso")
+  nombreCurso    String  @map("nombre_curso") @db.VarChar(45)
+  nivelFormacion String? @map("nivel_formacion") @db.VarChar(45)
+  duracion       String  @map("duracion") @db.VarChar(45)
+  idUsuario      String  @map("id_usuario") @db.VarChar(45)
+
+  clases          Clase[]
+  programasCursos ProgramaFormacionHasCursoCompetencia[]
+
+  @@map("Curso-competencia")
+}
+
+model ProgramaFormacion {
+  idProgramaFormacion Int    @id @map("idPrograma_formacion")
+  nombrePrograma      String @map("nombre_programa") @db.VarChar(45)
+  nivelFormacion      String @map("nivel_formacion") @db.VarChar(45)
+  usuarioIdAprendiz   Int    @map("Usuario_id_aprendiz")
+  usuarioRolIdRol     Int    @map("Usuario_Rol_ id_Rol")
+
+  usuario Usuario                                @relation(fields: [usuarioIdAprendiz, usuarioRolIdRol], references: [idUsuario, rolIdRol])
+  cursos  ProgramaFormacionHasCursoCompetencia[]
+
+  @@map("Programa-formacion")
+}
+
+model CentroDeFormacion {
+  idCentroDeFormacion Int    @id @map("idCentro_de_Formacion")
+  ciudad              String @map("Ciudad") @db.VarChar(45)
+  dirreccion          String @map("Dirreccion") @db.VarChar(45)
+
+  ambientes Ambiente[]
+
+  @@map("Centro de Formacion")
+}
+
+model Ambiente {
+  idAmbiente                           Int     @id @map("id_ambiente")
+  nombreAmbiente                       String? @map("nombre_ambiente") @db.VarChar(45)
+  ubicacion                            String? @map("ubicacion") @db.VarChar(45)
+  centroDeFormacionIdCentroDeFormacion Int     @map("Centro de Formacion_idCentro_de_Formacion")
+
+  centroDeFormacion CentroDeFormacion @relation(fields: [centroDeFormacionIdCentroDeFormacion], references: [idCentroDeFormacion])
+  clases            Clase[]
+
+  @@map("Ambiente")
+}
+
+model Clase {
+  idClase                 Int     @id @map("id_clase")
+  fecha                   String? @map("fecha") @db.VarChar(45)
+  horaInicio              String? @map("hora_inicio") @db.VarChar(45)
+  ambienteIdAmbiente      Int     @map("Ambiente_id_ambiente")
+  cursoCompetenciaIdCurso Int     @map("Curso-competencia_id_curso")
+
+  ambiente         Ambiente         @relation(fields: [ambienteIdAmbiente], references: [idAmbiente])
+  cursoCompetencia CursoCompetencia @relation(fields: [cursoCompetenciaIdCurso], references: [idCurso])
+  horarios         Horario[]
+
+  @@map("Clase")
+}
+
+model Asistencia {
+  idAsistencia               Int     @id @map("id_asistencia")
+  fecha                      String? @map("fecha") @db.VarChar(45)
+  horaIngreso                String? @map("hora_ingreso") @db.VarChar(45)
+  estadoPresenteTardeAusente String? @map("estado(presente/tarde/ausente)") @db.VarChar(45)
+  idAprendiz                 String? @map("id_aprendiz") @db.VarChar(45)
+  idClase                    String? @map("id_clase") @db.VarChar(45)
+
+  horarios Horario[]
+
+  @@map("Asistencia")
+}
+
+model Horario {
+  idHorario              Int     @id @map("id_horario")
+  dia                    String? @map("dia") @db.VarChar(45)
+  horaInicio             String? @map("hora_inicio") @db.VarChar(45)
+  horaFin                String? @map("hora_fin") @db.VarChar(45)
+  idClase                String? @map("id_clase") @db.VarChar(45)
+  asistenciaIdAsistencia Int     @map("Asistencia_id_asistencia")
+  claseIdClase           Int     @map("Clase_id_clase")
+
+  asistencia Asistencia @relation(fields: [asistenciaIdAsistencia], references: [idAsistencia])
+  clase      Clase      @relation(fields: [claseIdClase], references: [idClase])
+
+  @@map("Horario")
+}
+
+model Genero {
+  idGenero         Int     @id @map("id_genero")
+  descripcion      String? @map("descripcion") @db.VarChar(45)
+  usuarioIdUsuario Int     @map("Usuario_id_usuario")
+  usuarioRolIdRol  Int     @map("Usuario_Rol_ id_Rol")
+
+  usuario Usuario @relation(fields: [usuarioIdUsuario, usuarioRolIdRol], references: [idUsuario, rolIdRol])
+
+  @@map("Genero")
+}
+
+model EstadoEstudiante {
+  idEstadoEstudiante Int     @id @map("id_estado_estudiante")
+  descripcionEstado  String? @map("descripcion_estado") @db.VarChar(45)
+  usuarioIdUsuario   Int     @map("Usuario_id_usuario")
+  usuarioRolIdRol    Int     @map("Usuario_Rol_ id_Rol")
+
+  usuario Usuario @relation(fields: [usuarioIdUsuario, usuarioRolIdRol], references: [idUsuario, rolIdRol])
+
+  @@map("EstadoEstudiante")
+}
+
+model Ficha {
+  idFicha             Int     @id @map("id_ficha")
+  numeroFicha         String? @map("numero_ficha") @db.VarChar(45)
+  idProgramaFormacion String? @map("id_programa_formacion") @db.VarChar(45)
+  usuarioIdUsuario    Int     @map("Usuario_id_usuario")
+  usuarioRolIdRol     Int     @map("Usuario_Rol_ id_Rol")
+
+  usuario Usuario @relation(fields: [usuarioIdUsuario, usuarioRolIdRol], references: [idUsuario, rolIdRol])
+
+  @@map("Ficha")
+}
+
+model NivelDeFormacion {
+  usuarioIdAprendiz     Int    @map("Usuario_id_aprendiz")
+  usuarioRolIdRol       Int    @map("Usuario_Rol_ id_Rol")
+  idNivelDeFormacionCol String @id @map("Id_Nivel_de_formacioncol") @db.VarChar(45)
+
+  usuario Usuario @relation(fields: [usuarioIdAprendiz, usuarioRolIdRol], references: [idUsuario, rolIdRol])
+
+  @@map("Nivel de formacion")
+}
+
+model ProgramaFormacionHasCursoCompetencia {
+  cursoCompetenciaIdCurso              Int @id @map("Curso-competencia_id_curso")
+  programaFormacionIdProgramaFormacion Int @map("Programa-formacion_idPrograma_formacion")
+
+  cursoCompetencia  CursoCompetencia  @relation(fields: [cursoCompetenciaIdCurso], references: [idCurso])
+  programaFormacion ProgramaFormacion @relation(fields: [programaFormacionIdProgramaFormacion], references: [idProgramaFormacion])
+
+  @@map("Programa-formacion_has_Curso-competencia")
+}
