@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
+import { InstructorAttendanceQrScanner } from "./InstructorAttendanceQrScanner";
 import styles from "./InstructorHomeFilters.module.css";
 
 type Programa = { idProgramaFormacion: number; nombrePrograma: string };
@@ -27,7 +28,7 @@ type AsistenciaRow = {
 function estadoClass(estado: string | null | undefined) {
   const e = estado?.trim().toLowerCase() ?? "";
   if (e === "presente") return styles.estadoPresente;
-  if (e === "tarde") return styles.estadoTarde;
+  if (e === "tarde" || e === "tardanza") return styles.estadoTarde;
   if (e === "ausente") return styles.estadoAusente;
   return styles.estadoOtro;
 }
@@ -50,6 +51,7 @@ export function InstructorHomeFilters() {
   const [loadingClases, setLoadingClases] = useState(false);
   const [loadingAsistencias, setLoadingAsistencias] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -115,6 +117,7 @@ export function InstructorHomeFilters() {
     setCompetenciaId("");
     setFichaId("");
     setClaseId("");
+    setScannerOpen(false);
     setClases([]);
     setAsistencias([]);
     if (!value) {
@@ -128,6 +131,7 @@ export function InstructorHomeFilters() {
   const onCompetenciaChange = (value: string) => {
     setCompetenciaId(value);
     setClaseId("");
+    setScannerOpen(false);
     setClases([]);
     setAsistencias([]);
   };
@@ -135,9 +139,44 @@ export function InstructorHomeFilters() {
   const onFichaChange = (value: string) => {
     setFichaId(value);
     setClaseId("");
+    setScannerOpen(false);
     setClases([]);
     setAsistencias([]);
   };
+
+  const loadAsistencias = useCallback(async (selectedClaseId: string) => {
+    if (!selectedClaseId) {
+      setAsistencias([]);
+      return;
+    }
+
+    setLoadingAsistencias(true);
+    setAsistencias([]);
+    setError(null);
+    try {
+      const { data } = await axios.get<{
+        ok: boolean;
+        asistencias?: AsistenciaRow[];
+      }>(`/api/instructor/filtros?tipo=asistencias&claseId=${encodeURIComponent(selectedClaseId)}`);
+      if (data.ok && data.asistencias) setAsistencias(data.asistencias);
+      else setAsistencias([]);
+    } catch {
+      setError("No se pudo cargar la asistencia de la clase");
+      setAsistencias([]);
+    } finally {
+      setLoadingAsistencias(false);
+    }
+  }, []);
+
+  const onClaseChange = (value: string) => {
+    setClaseId(value);
+    setScannerOpen(false);
+  };
+
+  const handleAttendanceRegistered = useCallback(async () => {
+    if (!claseId) return;
+    await loadAsistencias(claseId);
+  }, [claseId, loadAsistencias]);
 
   useEffect(() => {
     if (!fichaId || !competenciaId) {
@@ -174,36 +213,11 @@ export function InstructorHomeFilters() {
   useEffect(() => {
     if (!claseId) {
       setAsistencias([]);
+      setScannerOpen(false);
       return;
     }
-
-    let cancelled = false;
-    (async () => {
-      setLoadingAsistencias(true);
-      setAsistencias([]);
-      setError(null);
-      try {
-        const { data } = await axios.get<{
-          ok: boolean;
-          asistencias?: AsistenciaRow[];
-        }>(`/api/instructor/filtros?tipo=asistencias&claseId=${encodeURIComponent(claseId)}`);
-        if (cancelled) return;
-        if (data.ok && data.asistencias) setAsistencias(data.asistencias);
-        else setAsistencias([]);
-      } catch {
-        if (!cancelled) {
-          setError("No se pudo cargar la asistencia de la clase");
-          setAsistencias([]);
-        }
-      } finally {
-        if (!cancelled) setLoadingAsistencias(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [claseId]);
+    void loadAsistencias(claseId);
+  }, [claseId, loadAsistencias]);
 
   const programaNombre = programas.find((p) => String(p.idProgramaFormacion) === programaId)
     ?.nombrePrograma;
@@ -314,7 +328,7 @@ export function InstructorHomeFilters() {
               id="filtro-clase"
               className={styles.select}
               value={claseId}
-              onChange={(e) => setClaseId(e.target.value)}
+              onChange={(e) => onClaseChange(e.target.value)}
               disabled={disableClase}
             >
               <option value="">
@@ -361,6 +375,32 @@ export function InstructorHomeFilters() {
           <p className={styles.error} role="alert">
             {error}
           </p>
+        ) : null}
+
+        {claseId && claseSeleccionada ? (
+          <div className={styles.actionsRow}>
+            <button
+              type="button"
+              className={styles.scanButton}
+              onClick={() => setScannerOpen((current) => !current)}
+              aria-expanded={scannerOpen}
+            >
+              {scannerOpen ? "Ocultar escaner QR" : "Escanear QR de aprendices"}
+            </button>
+          </div>
+        ) : null}
+
+        {scannerOpen && claseSeleccionada ? (
+          <div className={styles.scannerWrap}>
+            <InstructorAttendanceQrScanner
+              claseId={claseSeleccionada.idClase}
+              claseLabel={`Clase #${claseSeleccionada.idClase}${
+                claseSeleccionada.fecha ? ` · ${claseSeleccionada.fecha}` : ""
+              }`}
+              onAttendanceRegistered={handleAttendanceRegistered}
+              onClose={() => setScannerOpen(false)}
+            />
+          </div>
         ) : null}
       </section>
 
