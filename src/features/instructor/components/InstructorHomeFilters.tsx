@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
+import { InstructorAttendanceChart } from "./InstructorAttendanceChart";
 import { InstructorAttendanceQrScanner } from "./InstructorAttendanceQrScanner";
 import styles from "./InstructorHomeFilters.module.css";
 
@@ -430,13 +431,18 @@ export function InstructorHomeFilters() {
               </p>
             ) : null}
 
-            {loadingAsistencias ? (
-              <p className={styles.loadingMuted}>Cargando registro de asistencia...</p>
-            ) : asistencias.length === 0 ? (
+            <InstructorAttendanceChart
+              asistencias={asistencias}
+              loading={loadingAsistencias}
+            />
+
+            {!loadingAsistencias && asistencias.length === 0 ? (
               <p className={styles.emptyMuted}>
                 No hay asistencia registrada para esta clase.
               </p>
-            ) : (
+            ) : null}
+
+            {!loadingAsistencias && asistencias.length > 0 ? (
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
                   <thead>
@@ -469,7 +475,7 @@ export function InstructorHomeFilters() {
                   </tbody>
                 </table>
               </div>
-            )}
+            ) : null}
           </>
         )}
       </section>

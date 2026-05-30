@@ -1,0 +1,177 @@
+.wrap {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  border: 1px solid #e8ecf2;
+  border-radius: 0.55rem;
+  background: #f8fafc;
+}
+
+.title {
+  margin: 0 0 0.85rem;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.loadingText {
+  margin: 0;
+  font-size: 0.92rem;
+  color: #6b7280;
+}
+
+.content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.25rem 1.75rem;
+}
+
+.chartArea {
+  flex: 0 0 auto;
+}
+
+.chart {
+  width: 11rem;
+  height: 11rem;
+  display: block;
+}
+
+.chartBg {
+  fill: #eef1f5;
+}
+
+.chartEmpty {
+  fill: #e5e7eb;
+}
+
+.chartHole {
+  fill: #f8fafc;
+}
+
+.slice {
+  transition: opacity 0.15s ease;
+}
+
+.centerTotal {
+  fill: #111827;
+  font-size: 1.45rem;
+  font-weight: 700;
+}
+
+.centerLabel {
+  fill: #6b7280;
+  font-size: 0.72rem;
+}
+
+.legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1 1 12rem;
+}
+
+.legendItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.legendDot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 999px;
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.legendATiempo {
+  background: #2e7d32;
+}
+
+.legendTarde {
+  background: #f57f17;
+}
+
+.legendAusente {
+  background: #c62828;
+}
+
+.legendText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.9rem;
+  color: #111827;
+}
+
+.legendMeta {
+  font-size: 0.84rem;
+  color: #6b7280;
+}
+
+.bars {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr 2rem;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.barLabel {
+  font-size: 0.84rem;
+  color: #374151;
+}
+
+.barTrack {
+  height: 0.55rem;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 999px;
+  min-width: 0;
+  transition: width 0.25s ease;
+}
+
+.barFill.legendATiempo {
+  background: #2e7d32;
+}
+
+.barFill.legendTarde {
+  background: #f57f17;
+}
+
+.barFill.legendAusente {
+  background: #c62828;
+}
+
+.barValue {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #111827;
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .chartArea {
+    display: flex;
+    justify-content: center;
+  }
+}
