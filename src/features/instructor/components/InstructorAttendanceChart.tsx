@@ -7,7 +7,7 @@ type AsistenciaEstado = {
   estado: string | null;
 };
 
-type AttendanceCounts = {
+export type AttendanceCounts = {
   aTiempo: number;
   tarde: number;
   ausente: number;

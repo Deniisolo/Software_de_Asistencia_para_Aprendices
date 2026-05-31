@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
+import {
+  exportAsistenciaClaseExcel,
+  exportAsistenciaClasePdf
+} from "@/src/features/instructor/lib/exportAsistenciaClase";
 import { InstructorAttendanceChart } from "./InstructorAttendanceChart";
 import { InstructorAttendanceQrScanner } from "./InstructorAttendanceQrScanner";
 import styles from "./InstructorHomeFilters.module.css";
@@ -229,6 +233,40 @@ export function InstructorHomeFilters() {
   const disableCompetenciaFicha =
     !programaId || loadingProgramas || loadingRelaciones;
   const disableClase = !fichaId || !competenciaId || loadingClases;
+  const canExport = Boolean(claseSeleccionada) && !loadingAsistencias;
+
+  const buildExportContext = useCallback(() => {
+    if (!claseSeleccionada) return null;
+
+    return {
+      claseId: claseSeleccionada.idClase,
+      claseFecha: claseSeleccionada.fecha,
+      claseHoraInicio: claseSeleccionada.horaInicio,
+      ambiente: claseSeleccionada.ambiente.nombreAmbiente,
+      programaNombre: programaNombre ?? null,
+      competenciaNombre: competenciaNombre ?? null,
+      fichaNumero: fichaNumero ? String(fichaNumero) : null,
+      asistencias
+    };
+  }, [
+    asistencias,
+    claseSeleccionada,
+    competenciaNombre,
+    fichaNumero,
+    programaNombre
+  ]);
+
+  const handleExportPdf = () => {
+    const context = buildExportContext();
+    if (!context) return;
+    exportAsistenciaClasePdf(context);
+  };
+
+  const handleExportExcel = async () => {
+    const context = buildExportContext();
+    if (!context) return;
+    await exportAsistenciaClaseExcel(context);
+  };
 
   return (
     <main className={styles.page}>
@@ -435,6 +473,27 @@ export function InstructorHomeFilters() {
               asistencias={asistencias}
               loading={loadingAsistencias}
             />
+
+            {claseSeleccionada ? (
+              <div className={styles.exportRow}>
+                <button
+                  type="button"
+                  className={`${styles.exportButton} ${styles.exportButtonPdf}`}
+                  onClick={handleExportPdf}
+                  disabled={!canExport}
+                >
+                  Descargar PDF
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.exportButton} ${styles.exportButtonExcel}`}
+                  onClick={handleExportExcel}
+                  disabled={!canExport}
+                >
+                  Descargar Excel
+                </button>
+              </div>
+            ) : null}
 
             {!loadingAsistencias && asistencias.length === 0 ? (
               <p className={styles.emptyMuted}>

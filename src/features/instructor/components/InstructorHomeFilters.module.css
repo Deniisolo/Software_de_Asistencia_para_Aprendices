@@ -105,7 +105,52 @@
 .actionsRow {
   margin-top: 0.95rem;
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-start;
+  gap: 0.65rem;
+}
+
+.exportRow {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.exportButton {
+  border: 1px solid #d1d5db;
+  border-radius: 0.55rem;
+  padding: 0.65rem 0.95rem;
+  background: #ffffff;
+  color: #111827;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.exportButton:hover:not(:disabled) {
+  background: #f4f6f9;
+  border-color: #c5d4e8;
+}
+
+.exportButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.exportButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.exportButtonPdf {
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.exportButtonExcel {
+  border-color: #bbf7d0;
+  color: #166534;
 }
 
 .scanButton {
