@@ -2,6 +2,10 @@ import { useState } from "react";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { LoginApi } from "../api/login.api";
+import { loginInputSchema } from "../config/schemas/login.schema";
+
+export type LoginField = "usemame" | "Contrasenia";
+export type LoginFieldErrors = Partial<Record<LoginField, string>>;
 
 function resolveHomePathByRole(rol?: string) {
   const normalizedRole = rol?.trim().toLowerCase();
@@ -21,10 +25,63 @@ export function useLogin() {
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<LoginFieldErrors>({});
+  const [formSubmitted, setFormSubmitted] = useState(false);
+
+  const validateFields = (): LoginFieldErrors => {
+    const result = loginInputSchema.safeParse({ usemame, Contrasenia });
+    if (result.success) return {};
+
+    const errors: LoginFieldErrors = {};
+    for (const issue of result.error.issues) {
+      const field = issue.path[0];
+      if (
+        (field === "usemame" || field === "Contrasenia") &&
+        !errors[field]
+      ) {
+        errors[field] = issue.message;
+      }
+    }
+    return errors;
+  };
+
+  const handleUsemameChange = (value: string) => {
+    setUsemame(value);
+    if (formSubmitted) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next.usemame;
+        return next;
+      });
+    }
+  };
+
+  const handleContraseniaChange = (value: string) => {
+    setContrasenia(value);
+    if (formSubmitted) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next.Contrasenia;
+        return next;
+      });
+    }
+  };
 
   const submit = async () => {
-    setLoading(true);
+    setFormSubmitted(true);
     setIsError(false);
+    setMensaje("");
+
+    const errors = validateFields();
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      const firstInvalid = document.querySelector<HTMLElement>("[aria-invalid='true']");
+      firstInvalid?.focus();
+      return;
+    }
+
+    setLoading(true);
     setMensaje("Validando...");
 
     try {
@@ -58,14 +115,19 @@ export function useLogin() {
     }
   };
 
+  const showFieldError = (field: LoginField) =>
+    formSubmitted ? fieldErrors[field] : undefined;
+
   return {
     usemame,
     Contrasenia,
     mensaje,
     loading,
     isError,
-    setUsemame,
-    setContrasenia,
+    formSubmitted,
+    showFieldError,
+    setUsemame: handleUsemameChange,
+    setContrasenia: handleContraseniaChange,
     submit
   };
 }

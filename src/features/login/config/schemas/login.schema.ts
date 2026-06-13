@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const loginInputSchema = z.object({
-  usemame: z.string().trim().min(1, "Usuario requerido"),
-  Contrasenia: z.string().trim().min(1, "Contrasenia requerida")
+  usemame: z.string().trim().min(1, "El usuario es obligatorio"),
+  Contrasenia: z.string().trim().min(1, "La contraseña es obligatoria")
 });
 
 export const loginResponseSchema = z.object({

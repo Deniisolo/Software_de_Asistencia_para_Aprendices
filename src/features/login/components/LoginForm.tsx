@@ -6,6 +6,15 @@ import { FiEye, FiEyeOff, FiLock, FiUser } from "react-icons/fi";
 import { useLogin } from "../hooks/useLogin";
 import styles from "./LoginForm.module.css";
 
+function FieldError({ id, message }: { id: string; message?: string }) {
+  if (!message) return null;
+  return (
+    <p id={id} className={styles.fieldError} role="alert">
+      {message}
+    </p>
+  );
+}
+
 export function LoginForm() {
   const [showPwd, setShowPwd] = useState(false);
   const {
@@ -14,10 +23,14 @@ export function LoginForm() {
     mensaje,
     loading,
     isError,
+    showFieldError,
     setUsemame,
     setContrasenia,
     submit
   } = useLogin();
+
+  const usemameError = showFieldError("usemame");
+  const contraseniaError = showFieldError("Contrasenia");
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -43,7 +56,7 @@ export function LoginForm() {
             Bienvenido a <span>SAA</span>
           </h1>
 
-          <form onSubmit={onSubmit} className={styles.form}>
+          <form onSubmit={onSubmit} className={styles.form} noValidate>
             <label className={styles.label} htmlFor="usemame">
               Usuario
             </label>
@@ -52,13 +65,15 @@ export function LoginForm() {
               <input
                 id="usemame"
                 name="usemame"
-                className={styles.input}
+                className={usemameError ? `${styles.input} ${styles.inputInvalid}` : styles.input}
                 value={usemame}
                 onChange={(event) => setUsemame(event.target.value)}
                 placeholder="Ingresa tu usuario"
-                required
+                aria-invalid={usemameError ? true : undefined}
+                aria-describedby={usemameError ? "usemame-error" : undefined}
               />
             </div>
+            <FieldError id="usemame-error" message={usemameError} />
 
             <label className={styles.label} htmlFor="Contrasenia">
               Contraseña
@@ -68,12 +83,15 @@ export function LoginForm() {
               <input
                 id="Contrasenia"
                 name="Contrasenia"
-                className={styles.input}
+                className={
+                  contraseniaError ? `${styles.input} ${styles.inputInvalid}` : styles.input
+                }
                 type={showPwd ? "text" : "password"}
                 value={Contrasenia}
                 onChange={(event) => setContrasenia(event.target.value)}
                 placeholder="•••••••••••••••"
-                required
+                aria-invalid={contraseniaError ? true : undefined}
+                aria-describedby={contraseniaError ? "Contrasenia-error" : undefined}
               />
               <button
                 type="button"
@@ -84,6 +102,7 @@ export function LoginForm() {
                 {showPwd ? <FiEyeOff /> : <FiEye />}
               </button>
             </div>
+            <FieldError id="Contrasenia-error" message={contraseniaError} />
 
             <div className={styles.forgotWrap}>
               <a href="#" className={styles.forgot}>
