@@ -56,11 +56,14 @@ const emptyForm = () => ({
 });
 
 function FieldError({ id, message }: { id: string; message?: string }) {
-  if (!message) return null;
   return (
-    <p id={id} className={styles.fieldError} role="alert">
-      {message}
-    </p>
+    <div className={styles.fieldErrorSlot}>
+      {message ? (
+        <p id={id} className={styles.fieldError} role="alert">
+          {message}
+        </p>
+      ) : null}
+    </div>
   );
 }
 
@@ -527,9 +530,12 @@ export function InstructorAprendicesCrud() {
                 open={showPasswordRulesPopover}
               />
             </div>
-            {!showPasswordRulesPopover ? (
-              <FieldError id="ap-pass-error" message={showFieldError("contrasenia") || undefined} />
-            ) : null}
+            <FieldError
+              id="ap-pass-error"
+              message={
+                !showPasswordRulesPopover ? showFieldError("contrasenia") || undefined : undefined
+              }
+            />
           </div>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="ap-programa">
