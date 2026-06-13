@@ -30,6 +30,7 @@ export function HomeNavbar() {
   const router = useRouter();
   const [role, setRole] = useState<HomeUserRole | null>(null);
   const [hash, setHash] = useState("");
+  const [displayName, setDisplayName] = useState<string | null>(null);
 
   useEffect(() => {
     const read = () => {
@@ -41,6 +42,10 @@ export function HomeNavbar() {
         tokenPayload = null;
       }
       setRole(resolveHomeRole(pathname, tokenPayload));
+      const nombre = tokenPayload?.nombre?.trim() ?? "";
+      const apellido = tokenPayload?.apellido?.trim() ?? "";
+      const fullName = [nombre, apellido].filter(Boolean).join(" ");
+      setDisplayName(fullName || null);
       setHash(typeof window !== "undefined" ? window.location.hash : "");
     };
 
@@ -94,6 +99,11 @@ export function HomeNavbar() {
         )}
 
         <div className={styles.actions}>
+          {displayName ? (
+            <span className={styles.username} title={displayName}>
+              {displayName}
+            </span>
+          ) : null}
           <button
             type="button"
             className={styles.logout}
