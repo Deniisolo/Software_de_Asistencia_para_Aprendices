@@ -1,3 +1,5 @@
+import { AprendizHome } from "@/src/features/aprendiz/components/AprendizHome";
+
 export default function HomeAprendizPage() {
-  return <main>Home Aprendiz</main>;
+  return <AprendizHome />;
 }

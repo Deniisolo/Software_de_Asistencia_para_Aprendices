@@ -27,7 +27,7 @@ const ROLE_LABEL: Record<HomeUserRole, string> = {
  * amplía aquí aprendiz / administrador cuando existan pantallas.
  */
 export const NAV_LINKS_BY_ROLE: Record<HomeUserRole, HomeNavLink[]> = {
-  aprendiz: [],
+  aprendiz: [{ label: "Inicio", href: "/home/aprendiz", exact: true }],
   instructor: [
     { label: "Asistencia", href: "/home/instructor/asistencia" },
     { label: "Aprendices", href: "/home/instructor/aprendices" },
