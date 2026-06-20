@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import axios from "axios";
+import { normalizeProgramaFormacionId } from "@/src/lib/programaFormacionId";
 import { toDateInputValue } from "@/src/features/instructor/lib/dateInputValue";
 import { toTimeInputValue } from "@/src/features/instructor/lib/timeInputValue";
 import {
@@ -21,6 +22,7 @@ type FichaOpt = {
   idFicha: number;
   numeroFicha: string | null;
   idProgramaFormacion: string | null;
+  competencias?: CompetenciaOpt[];
 };
 type CompetenciaOpt = { idCurso: number; nombreCurso: string };
 type ClaseRow = {
@@ -110,11 +112,19 @@ export function InstructorClasesCrud() {
   const competenciasParaFicha = useCallback(
     (selectedFichaId: string) => {
       const ficha = fichas.find((f) => String(f.idFicha) === selectedFichaId);
-      if (!ficha?.idProgramaFormacion) return [];
-      return competenciasPorPrograma[ficha.idProgramaFormacion] ?? [];
+      if (!ficha) return [];
+      if (ficha.competencias != null) return ficha.competencias;
+      const programaKey = normalizeProgramaFormacionId(ficha.idProgramaFormacion);
+      if (programaKey == null) return [];
+      return competenciasPorPrograma[programaKey] ?? [];
     },
     [competenciasPorPrograma, fichas]
   );
+
+  const primeraFichaConCompetencias = useCallback(() => {
+    const conCompetencias = fichas.find((f) => (f.competencias ?? competenciasParaFicha(String(f.idFicha))).length > 0);
+    return conCompetencias ? String(conCompetencias.idFicha) : fichas[0] ? String(fichas[0].idFicha) : "";
+  }, [fichas, competenciasParaFicha]);
 
   const resetForm = () => {
     setEditingId(null);
@@ -122,7 +132,7 @@ export function InstructorClasesCrud() {
     setFecha("");
     setHoraInicio("");
     setAmbienteId(ambientes[0] ? String(ambientes[0].idAmbiente) : "");
-    const nextFichaId = fichas[0] ? String(fichas[0].idFicha) : "";
+    const nextFichaId = primeraFichaConCompetencias();
     setFichaId(nextFichaId);
     const competencias = competenciasParaFicha(nextFichaId);
     setCursoId(competencias[0] ? String(competencias[0].idCurso) : "");
@@ -188,9 +198,9 @@ export function InstructorClasesCrud() {
   useEffect(() => {
     if (loading || editingId != null) return;
     if (ambienteId === "" && ambientes[0]) setAmbienteId(String(ambientes[0].idAmbiente));
-    if (fichaId === "" && fichas[0]) setFichaId(String(fichas[0].idFicha));
+    if (fichaId === "" && fichas.length > 0) setFichaId(primeraFichaConCompetencias());
     if (trimestreId === "" && trimestres[0]) setTrimestreId(String(trimestres[0].idTrimestre));
-  }, [loading, editingId, ambientes, fichas, trimestres, ambienteId, fichaId, trimestreId]);
+  }, [loading, editingId, ambientes, fichas, trimestres, ambienteId, fichaId, trimestreId, primeraFichaConCompetencias]);
 
   useEffect(() => {
     if (loading || !fichaId) return;
@@ -512,7 +522,7 @@ export function InstructorClasesCrud() {
                 {!fichaId
                   ? "Seleccione primero una ficha"
                   : competenciasParaFicha(fichaId).length === 0
-                    ? "No hay competencias para esta ficha"
+                    ? "Sin competencias: el administrador debe asignarlas al programa de la ficha"
                     : "Seleccione competencia"}
               </option>
               {competenciasParaFicha(fichaId).map((c) => (

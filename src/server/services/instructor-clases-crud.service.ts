@@ -1,3 +1,4 @@
+import { normalizeProgramaFormacionId } from "@/src/lib/programaFormacionId";
 import { prisma } from "@/src/server/config/db/prisma";
 import { fechaDentroDeRango, fechasSemanalesEnRango } from "@/src/server/lib/weekly-dates";
 
@@ -103,7 +104,8 @@ export class InstructorClasesCrudService {
     > = {};
 
     for (const row of competenciasPorPrograma) {
-      const key = String(row.programaFormacionIdProgramaFormacion);
+      const key = normalizeProgramaFormacionId(String(row.programaFormacionIdProgramaFormacion));
+      if (key == null) continue;
       const list = competenciasPorProgramaMap[key] ?? [];
       list.push(row.cursoCompetencia);
       competenciasPorProgramaMap[key] = list;
@@ -115,7 +117,28 @@ export class InstructorClasesCrudService {
       );
     }
 
-    return { clases, ambientes, cursos, fichas, trimestres, competenciasPorPrograma: competenciasPorProgramaMap };
+    const fichasConCompetencias = fichas
+      .map((ficha) => {
+        const programaKey = normalizeProgramaFormacionId(ficha.idProgramaFormacion);
+        const competencias =
+          programaKey != null ? (competenciasPorProgramaMap[programaKey] ?? []) : [];
+        return { ...ficha, competencias };
+      })
+      .sort((a, b) => {
+        const aHas = a.competencias.length > 0 ? 1 : 0;
+        const bHas = b.competencias.length > 0 ? 1 : 0;
+        if (bHas !== aHas) return bHas - aHas;
+        return b.idFicha - a.idFicha;
+      });
+
+    return {
+      clases,
+      ambientes,
+      cursos,
+      fichas: fichasConCompetencias,
+      trimestres,
+      competenciasPorPrograma: competenciasPorProgramaMap
+    };
   }
 
   private async getTrimestreOrThrow(trimestreId: number) {
