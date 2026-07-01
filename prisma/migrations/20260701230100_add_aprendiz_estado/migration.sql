@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Aprendiz" ADD COLUMN IF NOT EXISTS "estado" VARCHAR(20) NOT NULL DEFAULT 'activo';

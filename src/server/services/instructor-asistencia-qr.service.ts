@@ -1,4 +1,5 @@
 import { evaluarEscaneoClase } from "@/src/features/instructor/lib/claseEscaneoPermitido";
+import { normalizeAprendizEstado } from "@/src/lib/aprendizEstado";
 import { prisma } from "@/src/server/config/db/prisma";
 
 type EstadoAsistencia = "presente" | "tarde" | "ausente";
@@ -119,7 +120,8 @@ export class InstructorAsistenciaQrService {
         numeroDocumento: true,
         aprendiz: {
           select: {
-            fichaIdFicha: true
+            fichaIdFicha: true,
+            estado: true
           }
         }
       }
@@ -140,6 +142,13 @@ export class InstructorAsistenciaQrService {
       throw new InstructorAsistenciaQrError(
         "El aprendiz escaneado no pertenece a la ficha de la clase seleccionada.",
         400
+      );
+    }
+
+    if (normalizeAprendizEstado(usuario.aprendiz.estado) === "inactivo") {
+      throw new InstructorAsistenciaQrError(
+        "El aprendiz escaneado esta inactivo y no puede registrar asistencia.",
+        403
       );
     }
 

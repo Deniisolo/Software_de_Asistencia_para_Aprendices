@@ -329,8 +329,8 @@ async function main() {
   }
 
   const aprendices = [
-    { fichaIdFicha: 287001, usuarioIdUsuario: 1001 },
-    { fichaIdFicha: 287002, usuarioIdUsuario: 1002 }
+    { fichaIdFicha: 287001, usuarioIdUsuario: 1001, estado: "activo" },
+    { fichaIdFicha: 287002, usuarioIdUsuario: 1002, estado: "activo" }
   ];
 
   for (const aprendiz of aprendices) {

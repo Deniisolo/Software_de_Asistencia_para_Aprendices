@@ -173,8 +173,9 @@ model Ficha {
 }
 
 model Aprendiz {
-  fichaIdFicha      Int @map("Ficha_id_ficha")
-  usuarioIdUsuario  Int @unique @map("Usuario_id_usuario")
+  fichaIdFicha      Int    @map("Ficha_id_ficha")
+  usuarioIdUsuario  Int    @unique @map("Usuario_id_usuario")
+  estado            String @default("activo") @map("estado") @db.VarChar(20)
 
   ficha   Ficha   @relation(fields: [fichaIdFicha], references: [idFicha])
   usuario Usuario @relation(fields: [usuarioIdUsuario], references: [idUsuario])

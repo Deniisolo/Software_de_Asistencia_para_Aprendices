@@ -2,6 +2,11 @@ import { randomUUID } from "node:crypto";
 import { hash } from "bcryptjs";
 import { prisma } from "@/src/server/config/db/prisma";
 import { validatePassword } from "@/src/lib/validatePassword";
+import {
+  APRENDIZ_ESTADO_DEFAULT,
+  type AprendizEstado,
+  normalizeAprendizEstado
+} from "@/src/lib/aprendizEstado";
 import { sendAprendizQrWelcomeEmail } from "@/src/server/services/aprendiz-email.service";
 
 const ROL_APRENDIZ = 1;
@@ -23,6 +28,7 @@ export type AprendizCreateInput = {
   idProgramaFormacion: string;
   /** Ficha existente del programa. */
   fichaIdFicha: number;
+  estado?: AprendizEstado;
 };
 
 export type AprendizUpdateInput = {
@@ -39,6 +45,7 @@ export type AprendizUpdateInput = {
   /** Cambiar ficha: enviar junto con idProgramaFormacion para validar. */
   idProgramaFormacion?: string | null;
   fichaIdFicha?: number;
+  estado?: AprendizEstado;
 };
 
 export class InstructorAprendicesCrudService {
@@ -239,6 +246,7 @@ export class InstructorAprendicesCrudService {
     const idUsuario = await this.nextUsuarioId();
     const hashed = await hash(contrasenia, BCRYPT_ROUNDS);
     const qr = randomUUID();
+    const estado = normalizeAprendizEstado(input.estado) ?? APRENDIZ_ESTADO_DEFAULT;
 
     const row = await prisma.$transaction(async (tx) => {
       await tx.usuario.create({
@@ -262,7 +270,8 @@ export class InstructorAprendicesCrudService {
       return tx.aprendiz.create({
         data: {
           usuarioIdUsuario: idUsuario,
-          fichaIdFicha: input.fichaIdFicha
+          fichaIdFicha: input.fichaIdFicha,
+          estado
         }
       });
     });
@@ -353,6 +362,13 @@ export class InstructorAprendicesCrudService {
     const cambiaFicha =
       input.fichaIdFicha !== undefined && input.fichaIdFicha !== ap.fichaIdFicha;
 
+    const aprendizData: Record<string, unknown> = {};
+    if (input.estado !== undefined) {
+      const estado = normalizeAprendizEstado(input.estado);
+      if (!estado) throw new Error("Estado invalido. Use activo o inactivo");
+      aprendizData.estado = estado;
+    }
+
     const row = await prisma.$transaction(async (tx) => {
       if (Object.keys(usuarioData).length > 0) {
         await tx.usuario.update({
@@ -362,9 +378,18 @@ export class InstructorAprendicesCrudService {
       }
 
       if (cambiaFicha && input.fichaIdFicha != null) {
+        const estadoActual =
+          (input.estado != null ? normalizeAprendizEstado(input.estado) : null) ??
+          normalizeAprendizEstado(ap.estado) ??
+          APRENDIZ_ESTADO_DEFAULT;
         await tx.aprendiz.delete({ where: { usuarioIdUsuario } });
         await tx.aprendiz.create({
-          data: { usuarioIdUsuario, fichaIdFicha: input.fichaIdFicha }
+          data: { usuarioIdUsuario, fichaIdFicha: input.fichaIdFicha, estado: estadoActual }
+        });
+      } else if (Object.keys(aprendizData).length > 0) {
+        await tx.aprendiz.update({
+          where: { usuarioIdUsuario },
+          data: aprendizData
         });
       }
 

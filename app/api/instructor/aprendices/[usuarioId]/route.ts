@@ -3,6 +3,7 @@ import {
   InstructorAprendicesCrudService,
   type AprendizUpdateInput
 } from "@/src/server/services/instructor-aprendices-crud.service";
+import { normalizeAprendizEstado } from "@/src/lib/aprendizEstado";
 
 type RouteContext = { params: Promise<{ usuarioId: string }> };
 
@@ -55,6 +56,16 @@ export async function PUT(request: Request, ctx: RouteContext) {
       if (n != null) input.fichaIdFicha = n;
     }
     if ("qrCode" in body) input.qrCode = str(body.qrCode) ?? null;
+    if ("estado" in body) {
+      const estado = normalizeAprendizEstado(body.estado);
+      if (!estado) {
+        return NextResponse.json(
+          { ok: false, error: "Estado invalido. Use activo o inactivo" },
+          { status: 400 }
+        );
+      }
+      input.estado = estado;
+    }
 
     if (Object.keys(input).length === 0) {
       return NextResponse.json({ ok: false, error: "Sin campos para actualizar" }, { status: 400 });

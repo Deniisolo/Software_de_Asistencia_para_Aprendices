@@ -13,6 +13,12 @@ import {
   validateAprendizForm
 } from "@/src/features/instructor/lib/validateAprendizForm";
 import { PasswordRequirementsChecklist } from "./PasswordRequirementsChecklist";
+import {
+  APRENDIZ_ESTADO_DEFAULT,
+  type AprendizEstado,
+  formatAprendizEstadoLabel,
+  normalizeAprendizEstado
+} from "@/src/lib/aprendizEstado";
 
 type ProgramaOpt = { idProgramaFormacion: number; nombrePrograma: string };
 type FichaOpt = { idFicha: number; numeroFicha: string | null };
@@ -20,6 +26,7 @@ type FichaOpt = { idFicha: number; numeroFicha: string | null };
 type AprendizRow = {
   fichaIdFicha: number;
   usuarioIdUsuario: number;
+  estado: string;
   programaNombre: string | null;
   usuario: {
     idUsuario: number;
@@ -52,7 +59,8 @@ const emptyForm = () => ({
   usemame: "",
   contrasenia: "",
   idProgramaFormacion: "",
-  fichaIdFicha: ""
+  fichaIdFicha: "",
+  estado: APRENDIZ_ESTADO_DEFAULT
 });
 
 function FieldError({ id, message }: { id: string; message?: string }) {
@@ -86,6 +94,7 @@ export function InstructorAprendicesCrud() {
   const [contrasenia, setContrasenia] = useState("");
   const [idProgramaFormacion, setIdProgramaFormacion] = useState("");
   const [fichaIdFicha, setFichaIdFicha] = useState("");
+  const [estado, setEstado] = useState<AprendizEstado>(APRENDIZ_ESTADO_DEFAULT);
   const [fichasOptions, setFichasOptions] = useState<FichaOpt[]>([]);
   const [loadingFichas, setLoadingFichas] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<AprendizFormErrors>({});
@@ -190,6 +199,7 @@ export function InstructorAprendicesCrud() {
     setContrasenia(e.contrasenia);
     setIdProgramaFormacion(e.idProgramaFormacion);
     setFichaIdFicha(e.fichaIdFicha);
+    setEstado(e.estado);
     setFichasOptions([]);
   };
 
@@ -237,6 +247,7 @@ export function InstructorAprendicesCrud() {
     setFichaIdFicha("");
     await loadFichasPorPrograma(prog);
     setFichaIdFicha(String(row.fichaIdFicha));
+    setEstado(normalizeAprendizEstado(row.estado) ?? APRENDIZ_ESTADO_DEFAULT);
   };
 
   const submit = async (e?: React.FormEvent) => {
@@ -271,7 +282,8 @@ export function InstructorAprendicesCrud() {
           correoElectronico,
           usemame,
           idProgramaFormacion: progTrim,
-          fichaIdFicha: fichaNum
+          fichaIdFicha: fichaNum,
+          estado
         };
         if (contrasenia.trim() !== "") {
           payload.contrasenia = contrasenia;
@@ -290,7 +302,8 @@ export function InstructorAprendicesCrud() {
           contrasenia,
           tipoDocumentoIdTipoDocumento: 1,
           idProgramaFormacion: progTrim,
-          fichaIdFicha: fichaNum
+          fichaIdFicha: fichaNum,
+          estado
         });
       }
       resetForm();
@@ -338,6 +351,13 @@ export function InstructorAprendicesCrud() {
 
   const showPasswordRulesPopover =
     editingUsuarioId == null && formSubmitted && !!fieldErrors.contrasenia;
+
+  const estadoBadgeClass = (value: string | null | undefined) => {
+    const normalized = normalizeAprendizEstado(value);
+    if (normalized === "activo") return styles.estadoActivo;
+    if (normalized === "inactivo") return styles.estadoInactivo;
+    return styles.estadoOtro;
+  };
 
   return (
     <main className={styles.page}>
@@ -602,6 +622,21 @@ export function InstructorAprendicesCrud() {
             </select>
             <FieldError id="ap-ficha-error" message={showFieldError("fichaIdFicha") || undefined} />
           </div>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="ap-estado">
+              Estado
+            </label>
+            <select
+              id="ap-estado"
+              className={styles.select}
+              value={estado}
+              onChange={(e) => setEstado(e.target.value as AprendizEstado)}
+              required
+            >
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+            </select>
+          </div>
           </div>
           <div className={styles.formActions}>
             <button
@@ -642,13 +677,14 @@ export function InstructorAprendicesCrud() {
                 <th>Usuario</th>
                 <th>Ficha</th>
                 <th>Programa</th>
+                <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {aprendices.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ color: "#6b7280" }}>
+                  <td colSpan={7} style={{ color: "#6b7280" }}>
                     No hay aprendices registrados.
                   </td>
                 </tr>
@@ -662,6 +698,11 @@ export function InstructorAprendicesCrud() {
                     <td>{v.usuario.usemame}</td>
                     <td>{v.ficha.numeroFicha ?? v.ficha.idFicha}</td>
                     <td>{v.programaNombre ?? "—"}</td>
+                    <td>
+                      <span className={`${styles.estadoBadge} ${estadoBadgeClass(v.estado)}`}>
+                        {formatAprendizEstadoLabel(v.estado)}
+                      </span>
+                    </td>
                     <td>
                       <div className={styles.rowActions}>
                         <button

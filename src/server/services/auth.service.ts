@@ -1,5 +1,6 @@
 import { signAuthToken } from "@/src/server/config/auth/jwt";
 import { compare } from "bcryptjs";
+import { normalizeAprendizEstado } from "@/src/lib/aprendizEstado";
 import { AuthRepository } from "@/src/server/repositories/auth.repository";
 
 export class AuthService {
@@ -16,6 +17,19 @@ export class AuthService {
 
     if (!isPasswordValid) {
       return { ok: false as const, status: 401, error: "Contraseña incorrecta" };
+    }
+
+    const rol = user.rol.nombreRol.toLowerCase();
+    if (rol === "aprendiz") {
+      const aprendiz = await this.repository.findAprendizByUsuarioId(user.idUsuario);
+      const estado = normalizeAprendizEstado(aprendiz?.estado);
+      if (estado === "inactivo") {
+        return {
+          ok: false as const,
+          status: 403,
+          error: "Tu cuenta de aprendiz esta inactiva. Contacta a tu instructor."
+        };
+      }
     }
 
     const token = signAuthToken({

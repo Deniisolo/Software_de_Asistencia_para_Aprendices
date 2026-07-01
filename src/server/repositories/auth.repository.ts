@@ -7,5 +7,12 @@ export class AuthRepository {
       include: { rol: true }
     });
   }
+
+  async findAprendizByUsuarioId(usuarioIdUsuario: number) {
+    return prisma.aprendiz.findUnique({
+      where: { usuarioIdUsuario },
+      select: { estado: true }
+    });
+  }
 }
 

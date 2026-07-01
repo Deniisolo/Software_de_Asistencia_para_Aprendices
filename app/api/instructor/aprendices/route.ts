@@ -3,6 +3,7 @@ import {
   InstructorAprendicesCrudService,
   type AprendizCreateInput
 } from "@/src/server/services/instructor-aprendices-crud.service";
+import { normalizeAprendizEstado } from "@/src/lib/aprendizEstado";
 
 function str(value: unknown): string | undefined {
   if (typeof value !== "string") return undefined;
@@ -59,6 +60,9 @@ export async function POST(request: Request) {
       idProgramaFormacion,
       fichaIdFicha
     };
+
+    const estado = normalizeAprendizEstado(body.estado);
+    if (estado) input.estado = estado;
 
     if (input.tipoDocumentoIdTipoDocumento != null && !Number.isFinite(input.tipoDocumentoIdTipoDocumento)) {
       delete input.tipoDocumentoIdTipoDocumento;
